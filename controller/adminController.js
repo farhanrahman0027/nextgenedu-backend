@@ -2,6 +2,8 @@ const bcrypt = require("bcrypt");
 const Admin = require("../models/adminModel");
 const httpStatusCode = require("../constant/httpStatusCode");
 const { getToken } = require("../middleware/authMiddleware");
+const { validationResult } = require("express-validator");
+
 
 const register = async (req, res) => {
     try {
@@ -89,7 +91,37 @@ const login = async (req, res) => {
     }
 }
 
+const ViewAdminDetails = async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(httpStatusCode.BAD_REQUEST).json({
+          success: false,
+          errors: errors.array(),
+        });
+      }
+      const admin = await Admin.findById(req.user._id);
+      if (!admin) {
+        return res.status(httpStatusCode.NOT_FOUND).json({
+          success: false,
+          message: "admin is not found",
+        });
+      }
+      return res.status(httpStatusCode.OK).json({
+        success: true,
+        message: "admin details",
+        data: admin,
+      });
+    } catch (error) {
+      return res.status(httpStatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
 module.exports = {
     register,
-    login
+    login,
+    ViewAdminDetails
 };
